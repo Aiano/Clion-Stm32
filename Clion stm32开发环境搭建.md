@@ -1,6 +1,8 @@
 # Clion stm32开发环境搭建
 
 > https://zhuanlan.zhihu.com/p/145801160
+>
+> [Clion官方帮助文档](https://www.jetbrains.com/help/clion/2021.3/embedded-development.html#build)
 
 ## 准备
 
@@ -224,11 +226,25 @@ int _fstat(int fd, struct stat *st) {
 #endif //#if !defined(OS_USE_SEMIHOSTING)
 ```
 
-然后把syscalls.c中重复定义的函数注释掉即可
+然后把syscalls.c中重复定义的函数注释掉，在main函数中调用Retarget函数初始化
 
 ### 新建的文件没办法被cmake识别？
 
 新建source文件时选择.c/.h文件，若选择.cpp则无法识别
+
+### 新建其它文件夹，分别管理文件
+
+修改`CMakeLists_template.txt`文件
+
+```cmake
+include_directories(${includes} <new directory>)
+
+file(GLOB_RECURSE SOURCES ${sources} "GY_87/*.*")
+```
+
+然后用STM32CubeMX重新生成代码即可
+
+**注意：**如果只修改了`include_directories`，则源文件没有被包含在cmake target中，所以头文件也没有被包含
 
 ### undefined reference to
 
@@ -239,6 +255,8 @@ int _fstat(int fd, struct stat *st) {
 > https://blog.csdn.net/PoJiaA123/article/details/81632106
 
 有时候遇到某个文件内没有代码提示功能，可以在Clion中点击Tools->CMake->Reset Cache and Reload Project
+
+注意：C++模式生成的代码占用空间比较大，如果采用F103最好用C模式
 
 ## Clion创建Doxygen注释
 
@@ -257,3 +275,11 @@ int _fstat(int fd, struct stat *st) {
 Doxygen的注释规范
 
 > https://www.jianshu.com/p/9464eca6aefe
+
+## 修改CMakeLists.txt以添加外部库或者FPU支持
+
+> [Clion官方帮助文档](https://www.jetbrains.com/help/clion/2021.3/embedded-development.html#build)
+>
+> - CLion regenerates **CMakeLists.txt** from the template every time the project is updated. If you need to make changes in the CMake script (for example, to add external libraries or FPU support), do so in **CMakeLists_template.txt** and then call Update CMake project with STM32CubeMX.
+>
+> 不要直接修改CMakeLists.txt，不然每次更新就会被重置，修改**CMakeLists_template.txt**文件。
